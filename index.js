@@ -6,14 +6,38 @@ const port = 9876;
 // Configuration
 const WINDOW_SIZE = 10;
 const THIRD_PARTY_API = "http://20.244.56.144/test";
+const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiZXhwIjoxNzIwMTkwODIxLCJpYXQiOjE3MjAxOTA1MjEsImlzcyI6IkFmZm9yZG1lZCIsImp0aSI6IjI4MzllZWNmLWMxY2ItNGQwNi05ODNlLTQ1NGUxM2M2YzMxNiIsInN1YiI6InZpc2hudS5rYW1zQGdtYWlsLmNvbSJ9LCJjb21wYW55TmFtZSI6IlZrcHJvamVjdCIsImNsaWVudElEIjoiMjgzOWVlY2YtYzFjYi00ZDA2LTk4M2UtNDU0ZTEzYzZjMzE2IiwiY2xpZW50U2VjcmV0IjoiVklncGRLcUNwRWRZYUZ2dSIsIm93bmVyTmFtZSI6IlZpc2hudSBLYW1pc2V0dGkiLCJvd25lckVtYWlsIjoidmlzaG51LmthbXNAZ21haWwuY29tIiwicm9sbE5vIjoiMTYwMTIxNzM3MjAwIn0.5pD066dwjOMVilmGVcbtIKqthkpzUaOeWf6pDUxCQNM";
 
 // Shared resources
 let numbersWindow = [];
 let numbersSet = new Set();
 
 const fetchNumbers = async (numberType) => {
+    let endpoint;
+    switch (numberType) {
+        case 'e':
+            endpoint = 'even';
+            break;
+        case 'p':
+            endpoint = 'primes';
+            break;
+        case 'f':
+            endpoint = 'fibo';
+            break;
+        case 'r':
+            endpoint = 'rand';
+            break;
+        default:
+            throw new Error('Invalid number type');
+    }
+
     try {
-        const response = await axios.get(`${THIRD_PARTY_API}/${numberType}`, { timeout: 500 });
+        const response = await axios.get(`${THIRD_PARTY_API}/${endpoint}`, {
+            headers: {
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            },
+            timeout: 500
+        });
         if (response.status === 200) {
             return response.data.numbers || [];
         }
@@ -24,9 +48,10 @@ const fetchNumbers = async (numberType) => {
     return [];
 };
 
+
 app.get('/numbers/:numberType', async (req, res) => {
     const numberType = req.params.numberType;
-    if (!['p', 'f', 'e', 'r'].includes(numberType)) {
+    if (!['e', 'p', 'f', 'r'].includes(numberType)) {
         return res.status(400).json({ error: 'Invalid number type' });
     }
 
